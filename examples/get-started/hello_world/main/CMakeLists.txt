@@ -1,2 +1,2 @@
-idf_component_register(SRCS "hello_world_main.c"
-                    INCLUDE_DIRS "")
+idf_component_register(SRCS "main.c wifi.c http_srv.c"
+                    INCLUDE_DIRS "inc")
