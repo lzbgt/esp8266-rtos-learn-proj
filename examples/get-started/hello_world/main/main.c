@@ -71,20 +71,6 @@ static esp_err_t system_event_handler(void *ctx, system_event_t *event)
     return ESP_OK;
 }
 
-
-void check_status( void *pvParameters ) {
-    for (int i = 0;; i++) {
-        if(gAction == 1) {
-            start_wifi_sta(wifi_ssid, wifi_password);
-            gAction = 0;
-        }
-        if(i % 10 == 0){
-            printf("I lived %d seconds...\n", i*100);
-        }
-        vTaskDelay(10000 / portTICK_PERIOD_MS);
-    }
-}
-
 void app_main()
 {
     esp_err_t err = ESP_OK;
@@ -93,6 +79,7 @@ void app_main()
     ESP_ERROR_CHECK(nvs_flash_init());
     tcpip_adapter_init();
 
+    // system event loop
     ESP_ERROR_CHECK(esp_event_loop_init(system_event_handler, NULL));
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
@@ -119,10 +106,17 @@ void app_main()
     printf("%dMB %s flash\n", spi_flash_get_chip_size() / (1024 * 1024),
             (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
 
-    xTaskCreate(check_status, "check stat", 1000, NULL, configTIMER_TASK_PRIORITY, NULL);
+    //xTaskCreate(check_status, "check stat", 1000, NULL, configTIMER_TASK_PRIORITY, NULL);
 
-    while(1){
+    for (int i = 0;; i++) {
+        if(gAction == 1) {
+            start_wifi_sta(wifi_ssid, wifi_password);
+            gAction = 0;
+        }
+        if(i % 10 == 0){
+            printf("I lived %d seconds...\n", i*100);
+        }
         DELAYMS(10000);
-    };
+    }
     //esp_event_loop_delete(system_event_handler);
 }

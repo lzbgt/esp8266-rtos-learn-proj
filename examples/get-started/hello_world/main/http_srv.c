@@ -50,7 +50,7 @@ esp_err_t http_wifi_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-esp_err_t start_http_srv(httpd_handle_t *httpsrv){
+esp_err_t start_http_srv(httpd_handle_t *srv){
     esp_err_t err = ESP_OK;
     /* Configure the HTTP server */
     httpd_config_t server_config   = HTTPD_DEFAULT_CONFIG();
@@ -67,15 +67,14 @@ esp_err_t start_http_srv(httpd_handle_t *httpsrv){
         .user_ctx = NULL
     };
 
-
-    if((err =httpd_start(httpsrv, &server_config))!= ESP_OK){
-        free(httpsrv);
+    if((err =httpd_start(srv, &server_config))!= ESP_OK){
+        free(srv);
         ESP_LOGE(TAG, "Failed to start http server: %d", err);
     }
 
-    if ((err = httpd_register_uri_handler(httpsrv, &config_handler)) != ESP_OK) {
+    if ((err = httpd_register_uri_handler(*srv, &config_handler)) != ESP_OK) {
         ESP_LOGE(TAG, "Uri handler register failed: %d", err);
-        free(httpsrv);
+        free(srv);
         return ESP_FAIL;
     }
 
