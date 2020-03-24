@@ -46,9 +46,9 @@ static esp_err_t system_event_handler(void *ctx, system_event_t *event)
             if (s_retry_num < APP_WIFI_RETRY_MAX) {
                 esp_wifi_connect();
                 s_retry_num++;
-                ESP_LOGI(TAG,"retry to connect to the AP");
+                ESP_LOGI(TAG,"retry connect AP");
             }else{
-                ESP_LOGI(TAG, "swith to ap");
+                ESP_LOGI(TAG, "swith to ap mode");
                 xEventGroupSetBits(xAppEventGroup, APP_EBIT_WIFI_START_AP);
                 s_retry_num = 0;
             }
@@ -95,9 +95,18 @@ static void vTaskWIFIManager(void *pvParameters){
     }
 }
 
+void vTaskStats(void *pvParam) {
+    for(int i = 0;; i++){
+        if(i %10 == 0)
+            ESP_LOGD("i lived %d secs", i*100);
+        DELAYMS(10000)
+    }
+}
+
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName ){
     ESP_LOGE(TAG, "stack of :%s", pcTaskName);
+
 }
 
 void app_main()
@@ -111,7 +120,8 @@ void app_main()
 
     // create tasks
     xAppEventGroup = xEventGroupCreate();
-    xTaskCreate(vTaskWIFIManager, "WIFI Mgr", 10240, &xWifiMgrCfg, 6, NULL); //configMAX_PRIORITIES
+    xTaskCreate(vTaskWIFIManager, "WIFI Mgr", 1024 * 10, &xWifiMgrCfg, 6, NULL); //configMAX_PRIORITIES
+    //xTaskCreate(vTaskStats, "stats", 1000, &xWifiMgrCfg, configMAX_CO_ROUTINE_PRIORITIES, NULL); 
 
     // init wifi
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
@@ -129,7 +139,7 @@ void app_main()
         *xWifiMgrCfg.sta_passwd = malloc(strlen((char*)wifi_config.sta.password)+1);
         strcpy(*xWifiMgrCfg.sta_passwd, (char*)wifi_config.sta.password);
         xEventGroupSetBits(xAppEventGroup, APP_EBIT_WIFI_START_STA);
-        start_wifi_sta(*xWifiMgrCfg.sta_ssid, *xWifiMgrCfg.sta_passwd);
+        //start_wifi_sta(*xWifiMgrCfg.sta_ssid, *xWifiMgrCfg.sta_passwd);
     }else{
         xEventGroupSetBits(xAppEventGroup, APP_EBIT_WIFI_START_AP);
     }

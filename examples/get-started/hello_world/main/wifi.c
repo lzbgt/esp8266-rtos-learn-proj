@@ -6,8 +6,8 @@ esp_err_t  start_wifi_sta(char *ssid, char *password)
 {
     esp_err_t err = ESP_OK;
     wifi_mode_t mode = 0;
-    ESP_LOGI(TAG, "starting sta");
     err = esp_wifi_get_mode(&mode);
+    ESP_LOGI(TAG, "starting sta. current mode: %d", mode);
     if(err != ESP_OK || (mode != WIFI_MODE_NULL)){
         // IMPORTANT!!!! toooo many GROUND truth
         esp_wifi_disconnect();
@@ -29,6 +29,7 @@ esp_err_t start_wifi_ap(const char *ssid, const char *pass)
 {
     esp_err_t err = ESP_OK;
     wifi_mode_t mode = 0;
+    ESP_LOGI(TAG, "starting ap. current mode: %d", mode);
     err = esp_wifi_get_mode(&mode);
     if(err != ESP_OK || (mode != WIFI_MODE_NULL)){
         esp_wifi_disconnect();
