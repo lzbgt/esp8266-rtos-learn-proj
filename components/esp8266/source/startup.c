@@ -72,6 +72,7 @@ static void user_init_entry(void *param)
     extern void (*__init_array_start)(void);
     extern void (*__init_array_end)(void);
 
+    // lzbgt modified
     extern void app_main(void);
 
     /* initialize C++ construture function */
@@ -108,6 +109,7 @@ static void user_init_entry(void *param)
     esp_set_cpu_freq(ESP_CPU_FREQ_160M);
 #endif
 
+    // lzbgt modified @ 2020.03
     app_main();
 
     vTaskDelete(NULL);
@@ -178,7 +180,10 @@ void call_start_cpu(size_t start_addr)
     esp_newlib_init();
 #endif
 
+    // lzbgt modified at 2020.3
     assert(xTaskCreate(user_init_entry, "uiT", ESP_TASK_MAIN_STACK, NULL, configMAX_PRIORITIES, NULL) == pdPASS);
-
+    // user_init_entry(NULL);
     vTaskStartScheduler();
+    // extern void app_main(void);
+    // app_main();
 }

@@ -1,18 +1,19 @@
-#include "common.h"
+#include "app_common.h"
 
 static const char *const TAG="app_httpsrv";
 
-extern int gAction;
-extern char *wifi_ssid, *wifi_password;
+static char pcMsgWifiInProcess[] = "WIFI config is in processing, command ignored";
 
 esp_err_t http_wifi_handler(httpd_req_t *req)
 {
     esp_err_t ret;
     char *ssid = NULL, *password = NULL;
     bool reconnect = false;
+    WIFIManagerConfig *xWifiCfg = (WIFIManagerConfig *)req->user_ctx;
 
-    if(gAction == 1) {
-        ret = httpd_resp_send(req, req->uri, sizeof(req->uri));
+    // wifi config is not finished, don't accept command
+    if(!xWifiCfg->xApChange) {
+        ret = httpd_resp_send(req, pcMsgWifiInProcess, sizeof(pcMsgWifiInProcess));
         return ret;
     }
 
@@ -25,32 +26,27 @@ esp_err_t http_wifi_handler(httpd_req_t *req)
         }
     }
 
-    if(wifi_ssid != NULL) free(wifi_ssid);
-    if(wifi_password != NULL) free(wifi_password);
-
-    wifi_ssid = NULL, wifi_password = NULL;
     if(password != NULL && ssid != NULL) {
-        wifi_ssid = malloc(strlen(ssid)+1);
-        strcpy(wifi_ssid, ssid);
-        wifi_password = malloc(strlen(password) + 1);
-        strcpy(wifi_password, password);
-        reconnect = true;
+        if(*xWifiCfg->sta_ssid != NULL) {
+            free(*xWifiCfg->sta_ssid);
+            free(*xWifiCfg->sta_passwd);
+            *xWifiCfg->sta_ssid = malloc(strlen(ssid)+1);
+            strcpy(*xWifiCfg->sta_ssid, ssid);
+            *xWifiCfg->sta_passwd = malloc(strlen(password) + 1);
+            strcpy(*xWifiCfg->sta_passwd, password);
+        }
+        xEventGroupSetBits(*xWifiCfg->pxEvtGroup, APP_EBIT_WIFI_START_STA);
     }
 
     ret = httpd_resp_send(req, req->uri, sizeof(req->uri));
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "HTTP send failed");
-        ret = ESP_FAIL;
-    }
-
-    if(reconnect){
-        gAction = 1; // reconnect
     }
     
-    return ESP_OK;
+    return ret;
 }
 
-esp_err_t start_http_srv(httpd_handle_t *srv){
+esp_err_t start_http_srv(httpd_handle_t *srv, WIFIManagerConfig *xWifiCfg){
     esp_err_t err = ESP_OK;
     /* Configure the HTTP server */
     httpd_config_t server_config   = HTTPD_DEFAULT_CONFIG();
@@ -64,7 +60,7 @@ esp_err_t start_http_srv(httpd_handle_t *srv){
         .uri      = "/wifi",
         .method   = HTTP_GET,
         .handler  = http_wifi_handler,
-        .user_ctx = NULL
+        .user_ctx = xWifiCfg
     };
 
     if((err =httpd_start(srv, &server_config))!= ESP_OK){
