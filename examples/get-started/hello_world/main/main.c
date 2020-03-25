@@ -120,7 +120,7 @@ void app_main()
 
     // create tasks
     xAppEventGroup = xEventGroupCreate();
-    xTaskCreate(vTaskWIFIManager, "WIFI Mgr", 1024 * 10, &xWifiMgrCfg, 6, NULL); //configMAX_PRIORITIES
+    xTaskCreate(vTaskWIFIManager, "WIFI Mgr", 1024 * 8, &xWifiMgrCfg, 11, NULL); //configMAX_PRIORITIES
     //xTaskCreate(vTaskStats, "stats", 1000, &xWifiMgrCfg, configMAX_CO_ROUTINE_PRIORITIES, NULL); 
 
     // init wifi

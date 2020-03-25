@@ -1,11 +1,11 @@
 #include "app_wifi.h"
 
 static const char * const TAG = "app_wifi";
-static wifi_config_t wifi_config;
 esp_err_t  start_wifi_sta(char *ssid, char *password)
 {
     esp_err_t err = ESP_OK;
     wifi_mode_t mode = 0;
+    wifi_config_t wifi_config;
     err = esp_wifi_get_mode(&mode);
     ESP_LOGI(TAG, "starting sta. current mode: %d", mode);
     if(err != ESP_OK || (mode != WIFI_MODE_NULL)){
@@ -29,6 +29,7 @@ esp_err_t start_wifi_ap(const char *ssid, const char *pass)
 {
     esp_err_t err = ESP_OK;
     wifi_mode_t mode = 0;
+    wifi_config_t wifi_config;
     ESP_LOGI(TAG, "starting ap. current mode: %d", mode);
     err = esp_wifi_get_mode(&mode);
     if(err != ESP_OK || (mode != WIFI_MODE_NULL)){
@@ -54,23 +55,19 @@ esp_err_t start_wifi_ap(const char *ssid, const char *pass)
     ESP_LOGI(TAG, "starting ap with ssid: %s, password: %s",wifi_config.ap.ssid, wifi_config.ap.password );
 
     /* Start WiFi in AP mode with configuration built above */
-    err = esp_wifi_set_mode(WIFI_MODE_AP);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to set WiFi mode : %s", esp_err_to_name(err));
-        return err;
-    }
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
     err = esp_wifi_set_config(ESP_IF_WIFI_AP, &wifi_config);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to set WiFi config : %s", esp_err_to_name(err));
-        return err;
+    if(err != ESP_OK){
+        ESP_LOGE(TAG, "failed to set ap config");
     }
     err = esp_wifi_start();
-    tcpip_adapter_dhcps_stop(TCPIP_ADAPTER_IF_AP);
-    err |= tcpip_adapter_dhcps_start(TCPIP_ADAPTER_IF_AP);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to start WiFi : %d", err);
-        return err;
+    if(err != ESP_OK){
+        ESP_LOGE(TAG, "failed to start ap wifi");
     }
+    //tcpip_adapter_dhcps_stop(TCPIP_ADAPTER_IF_AP);
+    //err |= tcpip_adapter_dhcps_start(TCPIP_ADAPTER_IF_AP);
+   
+    ESP_LOGI(TAG, "start ap FINISHED");
 
     return ESP_OK;
 }

@@ -8,11 +8,10 @@ esp_err_t http_wifi_handler(httpd_req_t *req)
 {
     esp_err_t ret;
     char *ssid = NULL, *password = NULL;
-    bool reconnect = false;
     WIFIManagerConfig *xWifiCfg = (WIFIManagerConfig *)req->user_ctx;
 
     // wifi config is not finished, don't accept command
-    if(!xWifiCfg->xApChange) {
+    if(xWifiCfg->xApChange) {
         ret = httpd_resp_send(req, pcMsgWifiInProcess, sizeof(pcMsgWifiInProcess));
         return ret;
     }
@@ -30,11 +29,14 @@ esp_err_t http_wifi_handler(httpd_req_t *req)
         if(*xWifiCfg->sta_ssid != NULL) {
             free(*xWifiCfg->sta_ssid);
             free(*xWifiCfg->sta_passwd);
+            
             *xWifiCfg->sta_ssid = malloc(strlen(ssid)+1);
             strcpy(*xWifiCfg->sta_ssid, ssid);
             *xWifiCfg->sta_passwd = malloc(strlen(password) + 1);
             strcpy(*xWifiCfg->sta_passwd, password);
+            ESP_LOGI(TAG, "got ssid: %s password: %s from httpsrv", *xWifiCfg->sta_ssid, *xWifiCfg->sta_passwd);
         }
+        ESP_LOGI(TAG, "sent STA bootstrapping");
         xEventGroupSetBits(*xWifiCfg->pxEvtGroup, APP_EBIT_WIFI_START_STA);
     }
 
@@ -42,6 +44,7 @@ esp_err_t http_wifi_handler(httpd_req_t *req)
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "HTTP send failed");
     }
+    ESP_LOGI(TAG, "FINISHED STA bootstrapping");
     
     return ret;
 }
