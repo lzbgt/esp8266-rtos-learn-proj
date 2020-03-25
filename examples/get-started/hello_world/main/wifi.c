@@ -8,18 +8,19 @@ esp_err_t  start_wifi_sta(char *ssid, char *password)
     wifi_config_t wifi_config;
     err = esp_wifi_get_mode(&mode);
     ESP_LOGI(TAG, "starting sta. current mode: %d", mode);
-    if(err != ESP_OK || (mode != WIFI_MODE_NULL)){
-        // IMPORTANT!!!! toooo many GROUND truth
-        esp_wifi_disconnect();
-        esp_wifi_stop();
-    }
+    // IMPORTANT!!!! toooo many GROUND truth
+    esp_wifi_disconnect();
+    esp_wifi_stop();
+    
     memset(&wifi_config, 0, sizeof(wifi_config));
     strcpy((char *)wifi_config.sta.ssid, ssid);
     strcpy((char *)wifi_config.sta.password, password);
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
-    ESP_ERROR_CHECK(esp_wifi_start());
-
+    err = esp_wifi_set_mode(WIFI_MODE_STA);
+    err = esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config);
+    if(err != ESP_OK){
+        ESP_LOGE(TAG, "failed to set ap STA config");
+    }
+    err = esp_wifi_start();
     ESP_LOGI(TAG, "start_wifi_sta COMPLETED");
 
     return err;
@@ -32,33 +33,31 @@ esp_err_t start_wifi_ap(const char *ssid, const char *pass)
     wifi_config_t wifi_config;
     ESP_LOGI(TAG, "starting ap. current mode: %d", mode);
     err = esp_wifi_get_mode(&mode);
-    if(err != ESP_OK || (mode != WIFI_MODE_NULL)){
-        esp_wifi_disconnect();
-        esp_wifi_stop();
-    }
-    ESP_LOGI(TAG, "current mode: %d", mode);
+    esp_wifi_disconnect();
+    esp_wifi_stop();
+    esp_wifi_restore();
 
+    // config
     memset(&wifi_config, 0, sizeof(wifi_config));
     wifi_config.ap.max_connection = 3;
-    
-    strncpy((char *) wifi_config.ap.ssid, ssid, sizeof(wifi_config.ap.ssid));
-    wifi_config.ap.ssid_len = strlen(ssid);
 
+    // ssid
+    wifi_config.ap.ssid_len = strlen(ssid);
+    strcpy((char *) wifi_config.ap.ssid, ssid);
+
+    // password
     if (strlen(pass) == 0) {
-        memset(wifi_config.ap.password, 0, sizeof(wifi_config.ap.password));
         wifi_config.ap.authmode = WIFI_AUTH_OPEN;
     } else {
-        strncpy((char *) wifi_config.ap.password, pass, sizeof(wifi_config.ap.password));
+        strcpy((char *) wifi_config.ap.password, pass);
         wifi_config.ap.authmode = WIFI_AUTH_WPA_WPA2_PSK;
     }
 
     ESP_LOGI(TAG, "starting ap with ssid: %s, password: %s",wifi_config.ap.ssid, wifi_config.ap.password );
-
-    /* Start WiFi in AP mode with configuration built above */
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
     err = esp_wifi_set_config(ESP_IF_WIFI_AP, &wifi_config);
     if(err != ESP_OK){
-        ESP_LOGE(TAG, "failed to set ap config");
+        ESP_LOGE(TAG, "failed to set ap config: %d", err);
     }
     err = esp_wifi_start();
     if(err != ESP_OK){

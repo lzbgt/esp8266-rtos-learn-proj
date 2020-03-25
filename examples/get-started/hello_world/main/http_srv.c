@@ -1,7 +1,6 @@
 #include "app_common.h"
 
 static const char *const TAG="app_httpsrv";
-
 static char pcMsgWifiInProcess[] = "WIFI config is in processing, command ignored";
 
 esp_err_t http_wifi_handler(httpd_req_t *req)
@@ -29,13 +28,12 @@ esp_err_t http_wifi_handler(httpd_req_t *req)
         if(*xWifiCfg->sta_ssid != NULL) {
             free(*xWifiCfg->sta_ssid);
             free(*xWifiCfg->sta_passwd);
-            
-            *xWifiCfg->sta_ssid = malloc(strlen(ssid)+1);
-            strcpy(*xWifiCfg->sta_ssid, ssid);
-            *xWifiCfg->sta_passwd = malloc(strlen(password) + 1);
-            strcpy(*xWifiCfg->sta_passwd, password);
-            ESP_LOGI(TAG, "got ssid: %s password: %s from httpsrv", *xWifiCfg->sta_ssid, *xWifiCfg->sta_passwd);
         }
+        *xWifiCfg->sta_ssid = malloc(strlen(ssid)+1);
+        strcpy(*xWifiCfg->sta_ssid, ssid);
+        *xWifiCfg->sta_passwd = malloc(strlen(password) + 1);
+        strcpy(*xWifiCfg->sta_passwd, password);
+        ESP_LOGI(TAG, "got ssid: %s password: %s from httpsrv", *xWifiCfg->sta_ssid, *xWifiCfg->sta_passwd);
         ESP_LOGI(TAG, "sent STA bootstrapping");
         xEventGroupSetBits(*xWifiCfg->pxEvtGroup, APP_EBIT_WIFI_START_STA);
     }

@@ -7,14 +7,18 @@
    CONDITIONS OF ANY KIND, either express or implied.
 */
 #include "app_common.h"
+#include "app_wifi.h"
+#include "app_httpsrv.h"
+#include "app_spiffs.h"
 #include <freertos/task.h>
 #include <esp_event_loop.h>
 #include <nvs_flash.h>
+#include <esp_spi_flash.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/unistd.h>
 #include <lwip/err.h>
 #include <lwip/sys.h>
-#include "esp_spi_flash.h"
-#include "app_wifi.h"
-#include "app_httpsrv.h"
 
 static const char * TAG="hello";
 
@@ -112,15 +116,14 @@ void vApplicationStackOverflowHook( TaskHandle_t xTask,
 void app_main()
 {
     esp_err_t err = ESP_OK;
-
+    
     tcpip_adapter_init();
-
     // system event loop
     ESP_ERROR_CHECK(esp_event_loop_init(system_event_handler, NULL));
 
     // create tasks
     xAppEventGroup = xEventGroupCreate();
-    xTaskCreate(vTaskWIFIManager, "WIFI Mgr", 1024 * 8, &xWifiMgrCfg, 11, NULL); //configMAX_PRIORITIES
+    xTaskCreate(vTaskWIFIManager, "WIFI Mgr", 1024 * 8, &xWifiMgrCfg, 8, NULL); //configMAX_PRIORITIES
     //xTaskCreate(vTaskStats, "stats", 1000, &xWifiMgrCfg, configMAX_CO_ROUTINE_PRIORITIES, NULL); 
 
     // init wifi
@@ -143,24 +146,6 @@ void app_main()
     }else{
         xEventGroupSetBits(xAppEventGroup, APP_EBIT_WIFI_START_AP);
     }
-
-    // prints
-    printf("Hello world!\n");
-    esp_chip_info_t chip_info;
-    esp_chip_info(&chip_info);
-    printf("This is ESP8266 chip with %d CPU cores, WiFi, ", chip_info.cores);
-
-    printf("silicon revision %d, ", chip_info.revision);
-
-    printf("%dMB %s flash\n", spi_flash_get_chip_size() / (1024 * 1024),
-            (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
-
-    // for (int i = 0;; i++) {
-    //     if(i % 10 == 0){
-    //         printf("I lived %d seconds...\n", i*100);
-    //     }
-    //     DELAYMS(10000);
-    // }
 
     // vTaskStartScheduler();
     // esp_event_loop_delete(system_event_handler);
