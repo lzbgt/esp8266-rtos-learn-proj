@@ -35,7 +35,6 @@ esp_err_t start_wifi_ap(const char *ssid, const char *pass)
     err = esp_wifi_get_mode(&mode);
     esp_wifi_disconnect();
     esp_wifi_stop();
-    esp_wifi_restore();
 
     // config
     memset(&wifi_config, 0, sizeof(wifi_config));

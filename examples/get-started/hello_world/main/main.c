@@ -25,7 +25,7 @@ static const char * TAG="hello";
 // wifi manager globals
 EventGroupHandle_t xAppEventGroup;
 const EventBits_t xBitsToWaitFor = APP_EBIT_WIFI_START_AP| APP_EBIT_WIFI_START_STA;
-char *ap_ssid = "blu-esp1", *ap_passwd = "123456";
+char *ap_ssid = "blu-esp1", *ap_passwd = "test123456";
 char *wifi_ssid = NULL, *wifi_passwd = NULL;
 WIFIManagerConfig xWifiMgrCfg = {
     .ap_ssid = &ap_ssid,
@@ -95,22 +95,19 @@ static void vTaskWIFIManager(void *pvParameters){
             // // not needed
             // DELAYMS(500);
         }
-        // ESP_LOGI(TAG, "FINISHED WIFIManager");
+        ESP_LOGI(TAG, "FINISHED WIFIManager");
     }
 }
 
-void vTaskStats(void *pvParam) {
-    for(int i = 0;; i++){
-        if(i %10 == 0)
-            ESP_LOGD("i lived %d secs", i*100);
+static void vTaskStats(void *pvParam) {
+    int i = 0;
+    for(;; i++){
+        if(i %10 == 0){
+            ESP_LOGD(TAG, "i lived %d secs.", i*100);
+        }
+        
         DELAYMS(10000)
     }
-}
-
-void vApplicationStackOverflowHook( TaskHandle_t xTask,
-                                    signed char *pcTaskName ){
-    ESP_LOGE(TAG, "stack of :%s", pcTaskName);
-
 }
 
 void app_main()
@@ -124,7 +121,7 @@ void app_main()
     // create tasks
     xAppEventGroup = xEventGroupCreate();
     xTaskCreate(vTaskWIFIManager, "WIFI Mgr", 1024 * 8, &xWifiMgrCfg, 8, NULL); //configMAX_PRIORITIES
-    //xTaskCreate(vTaskStats, "stats", 1000, &xWifiMgrCfg, configMAX_CO_ROUTINE_PRIORITIES, NULL); 
+    xTaskCreate(vTaskStats, "stats", 1000, NULL, configMAX_CO_ROUTINE_PRIORITIES, NULL); 
 
     // init wifi
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();

@@ -107,10 +107,10 @@ void app_main(void)
     //hook isr handler for specific gpio pin
     gpio_isr_handler_add(GPIO_INPUT_IO_1, gpio_isr_handler, (void *) GPIO_INPUT_IO_1);
 
-    //remove isr handler for gpio number.
-    gpio_isr_handler_remove(GPIO_INPUT_IO_0);
-    //hook isr handler for specific gpio pin again
-    gpio_isr_handler_add(GPIO_INPUT_IO_0, gpio_isr_handler, (void *) GPIO_INPUT_IO_0);
+    // //remove isr handler for gpio number.
+    // gpio_isr_handler_remove(GPIO_INPUT_IO_0);
+    // //hook isr handler for specific gpio pin again
+    // gpio_isr_handler_add(GPIO_INPUT_IO_0, gpio_isr_handler, (void *) GPIO_INPUT_IO_0);
 
     int cnt = 0;
 
